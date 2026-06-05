@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       Rol      @default(VENDEDOR)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  ventas    Venta[]
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  dni       String   @unique
+  telefono  String?
+  email     String?
+  createdAt DateTime @default(now())
+  ventas    Venta[]
+}
+
+model Producto {
+  id          Int            @id @default(autoincrement())
+  nombre      String
+  codigo      String         @unique
+  categoria   String
+  precio      Float
+  stock       Int
+  stockMinimo Int            @default(5)
+  createdAt   DateTime       @default(now())
+  detalles    DetalleVenta[]
+}
+
+model Venta {
+  id          Int             @id @default(autoincrement())
+  clienteId   Int
+  usuarioId   Int
+  total       Float
+  descuento   Float           @default(0)
+  metodoPago  MetodoPago
+  comprobante TipoComprobante
+  createdAt   DateTime        @default(now())
+  cliente     Cliente         @relation(fields: [clienteId], references: [id])
+  usuario     Usuario         @relation(fields: [usuarioId], references: [id])
+  detalles    DetalleVenta[]
+}
+
+model DetalleVenta {
+  id         Int      @id @default(autoincrement())
+  ventaId    Int
+  productoId Int
+  cantidad   Int
+  precioUnit Float
+  subtotal   Float
+  venta      Venta    @relation(fields: [ventaId], references: [id])
+  producto   Producto @relation(fields: [productoId], references: [id])
+}
+
+enum Rol {
+  ADMINISTRADOR
+  VENDEDOR
+  CAJERO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+}
+
+enum TipoComprobante {
+  BOLETA
+  FACTURA
+}
