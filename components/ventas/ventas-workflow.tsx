@@ -8,6 +8,15 @@ import type {
   ProductoResumen,
   TipoComprobante,
 } from "@/lib/sales-types";
+import {
+  InternalBadge,
+  InternalPageHeader,
+  internalInputClassName,
+  internalPrimaryButtonClassName,
+  internalSecondaryButtonClassName,
+  internalSoftSurfaceClassName,
+  internalSurfaceClassName,
+} from "@/components/internal/internal-ui";
 
 interface VentasWorkflowProps {
   initialProducts: ProductoResumen[];
@@ -36,18 +45,13 @@ function clampQuantity(value: number, stock: number) {
   return Math.min(Math.max(1, value), Math.max(1, stock));
 }
 
-export default function VentasWorkflow({
-  initialProducts,
-  initialClients,
-}: VentasWorkflowProps) {
+export default function VentasWorkflow({ initialProducts, initialClients }: VentasWorkflowProps) {
   const router = useRouter();
   const [products] = useState(initialProducts);
   const [clients, setClients] = useState(initialClients);
   const [productSearch, setProductSearch] = useState("");
   const [clientSearch, setClientSearch] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(
-    initialClients[0]?.id ?? null
-  );
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(initialClients[0]?.id ?? null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [discount, setDiscount] = useState("0");
   const [metodoPago, setMetodoPago] = useState<MetodoPago>("EFECTIVO");
@@ -70,11 +74,7 @@ export default function VentasWorkflow({
       return products;
     }
 
-    return products.filter((product) =>
-      [product.nombre, product.codigo, product.categoria].some((value) =>
-        value.toLowerCase().includes(q)
-      )
-    );
+    return products.filter((product) => [product.nombre, product.codigo, product.categoria].some((value) => value.toLowerCase().includes(q)));
   }, [productSearch, products]);
 
   const filteredClients = useMemo(() => {
@@ -116,17 +116,12 @@ export default function VentasWorkflow({
   );
 
   const subtotal = cartLines.reduce((sum, line) => sum + line.lineTotal, 0);
-  const discountValue = Math.min(
-    Math.max(0, Number(discount || 0)),
-    subtotal
-  );
+  const discountValue = Math.min(Math.max(0, Number(discount || 0)), subtotal);
   const total = Math.max(0, subtotal - discountValue);
   const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null;
 
   function addProduct(product: ProductoResumen) {
-    if (product.stock <= 0) {
-      return;
-    }
+    if (product.stock <= 0) return;
 
     setSaleError(null);
     setCart((current) => {
@@ -137,9 +132,7 @@ export default function VentasWorkflow({
       }
 
       return current.map((line) =>
-        line.productId === product.id
-          ? { ...line, quantity: clampQuantity(line.quantity + 1, product.stock) }
-          : line
+        line.productId === product.id ? { ...line, quantity: clampQuantity(line.quantity + 1, product.stock) } : line
       );
     });
   }
@@ -147,18 +140,10 @@ export default function VentasWorkflow({
   function updateQuantity(productId: number, quantity: number) {
     const product = products.find((item) => item.id === productId);
 
-    if (!product) {
-      return;
-    }
+    if (!product) return;
 
     setSaleError(null);
-    setCart((current) =>
-      current.map((line) =>
-        line.productId === productId
-          ? { ...line, quantity: clampQuantity(quantity, product.stock) }
-          : line
-      )
-    );
+    setCart((current) => current.map((line) => (line.productId === productId ? { ...line, quantity: clampQuantity(quantity, product.stock) } : line)));
   }
 
   function removeProduct(productId: number) {
@@ -222,10 +207,7 @@ export default function VentasWorkflow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clienteId: selectedClientId,
-          items: cartLines.map((line) => ({
-            productId: line.productId,
-            quantity: line.quantity,
-          })),
+          items: cartLines.map((line) => ({ productId: line.productId, quantity: line.quantity })),
           discount: discountValue,
           metodoPago,
           comprobante,
@@ -247,48 +229,46 @@ export default function VentasWorkflow({
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Nueva venta</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Buscá productos, armá el carrito y registrá la operación en una sola pantalla.
-        </p>
-      </div>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <InternalPageHeader
+        eyebrow="Operación comercial"
+        title="Nueva venta"
+        description="Buscá productos, armá el carrito y registrá la operación en una sola pantalla."
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.85fr)]">
         <section className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
-            <div className="flex items-end justify-between gap-3 flex-wrap">
+          <div className={`${internalSurfaceClassName} p-4 lg:p-5`}>
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Productos</h2>
-                <p className="text-sm text-gray-500">Buscá por nombre, código o categoría.</p>
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">Catálogo</p>
+                <h2 className="mt-2 text-base font-semibold text-slate-50">Productos</h2>
+                <p className="text-sm leading-6 text-slate-300">Buscá por nombre, código o categoría.</p>
               </div>
-              <div className="text-sm text-gray-500">{filteredProducts.length} resultados</div>
+              <div className="text-sm text-slate-400">{filteredProducts.length} resultados</div>
             </div>
 
             <input
               value={productSearch}
               onChange={(event) => setProductSearch(event.target.value)}
               placeholder="Buscar productos"
-              className="mt-4 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
+              className={`mt-4 ${internalInputClassName}`}
             />
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredProducts.map((product) => (
-                <article key={product.id} className="rounded-xl border border-gray-200 p-4">
+                <article key={product.id} className="rounded-[1.25rem] border border-slate-800 bg-slate-950/60 p-4 transition-colors hover:bg-slate-900">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-medium text-gray-900">{product.nombre}</h3>
-                      <p className="text-xs text-gray-500">{product.codigo}</p>
+                      <h3 className="font-medium text-slate-50">{product.nombre}</h3>
+                      <p className="text-xs text-slate-400">{product.codigo}</p>
                     </div>
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                      {product.categoria}
-                    </span>
+                    <InternalBadge tone="accent">{product.categoria}</InternalBadge>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-900">{money(product.precio)}</span>
-                    <span className={product.stock <= product.stockMinimo ? "text-amber-700" : "text-gray-500"}>
+                    <span className="font-medium text-slate-50">{money(product.precio)}</span>
+                    <span className={product.stock <= product.stockMinimo ? "text-amber-200" : "text-slate-400"}>
                       Stock {product.stock}
                     </span>
                   </div>
@@ -297,7 +277,7 @@ export default function VentasWorkflow({
                     type="button"
                     disabled={product.stock <= 0}
                     onClick={() => addProduct(product)}
-                    className="mt-4 w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    className={`${internalPrimaryButtonClassName} mt-4 w-full disabled:bg-slate-700 disabled:text-slate-400`}
                   >
                     {product.stock > 0 ? "Agregar" : "Sin stock"}
                   </button>
@@ -305,7 +285,7 @@ export default function VentasWorkflow({
               ))}
 
               {!filteredProducts.length && (
-                <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500 sm:col-span-2 xl:col-span-3">
+                <div className="rounded-[1.25rem] border border-dashed border-slate-700 bg-slate-950/40 p-6 text-sm text-slate-400 sm:col-span-2 xl:col-span-3">
                   No hay productos que coincidan con la búsqueda.
                 </div>
               )}
@@ -314,24 +294,21 @@ export default function VentasWorkflow({
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+          <div className={`${internalSurfaceClassName} p-4`}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Cliente</h2>
-                <p className="text-sm text-gray-500">Seleccioná uno existente o crealo al instante.</p>
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">Cliente</p>
+                <h2 className="mt-2 text-base font-semibold text-slate-50">Seleccionar o crear</h2>
+                <p className="text-sm leading-6 text-slate-300">Elegí un cliente existente o crealo al instante.</p>
               </div>
-              {selectedClient && (
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                  Seleccionado
-                </span>
-              )}
+              {selectedClient && <InternalBadge tone="success">Seleccionado</InternalBadge>}
             </div>
 
             <input
               value={clientSearch}
               onChange={(event) => setClientSearch(event.target.value)}
               placeholder="Buscar cliente"
-              className="mt-4 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
+              className={`mt-4 ${internalInputClassName}`}
             />
 
             <div className="mt-3 max-h-56 space-y-2 overflow-auto pr-1">
@@ -340,102 +317,95 @@ export default function VentasWorkflow({
                   key={client.id}
                   type="button"
                   onClick={() => setSelectedClientId(client.id)}
-                  className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                  className={`w-full rounded-[1rem] border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                     client.id === selectedClientId
-                      ? "border-gray-900 bg-gray-50"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-slate-50"
+                      : "border-slate-800 bg-slate-950/60 text-slate-200 hover:bg-slate-900"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-medium text-gray-900">{client.nombre}</div>
-                      <div className="text-xs text-gray-500">DNI {client.dni}</div>
+                      <div className="font-medium">{client.nombre}</div>
+                      <div className="text-xs text-slate-400">DNI {client.dni}</div>
                     </div>
-                    <span className="text-xs text-gray-500">#{client.id}</span>
+                    <span className="text-xs text-slate-500">#{client.id}</span>
                   </div>
                 </button>
               ))}
 
               {!filteredClients.length && (
-                <p className="rounded-xl border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500">
+                <p className="rounded-[1rem] border border-dashed border-slate-700 bg-slate-950/40 px-3 py-4 text-sm text-slate-400">
                   No hay clientes con ese filtro.
                 </p>
               )}
             </div>
 
             {selectedClient && (
-              <div className="mt-3 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
-                <div className="font-medium text-gray-900">{selectedClient.nombre}</div>
+              <div className={`${internalSoftSurfaceClassName} mt-3 p-3 text-sm text-slate-300`}>
+                <div className="font-medium text-slate-50">{selectedClient.nombre}</div>
                 <div>DNI {selectedClient.dni}</div>
                 {selectedClient.email && <div>{selectedClient.email}</div>}
                 {selectedClient.telefono && <div>{selectedClient.telefono}</div>}
               </div>
             )}
 
-            <form onSubmit={handleCreateClient} className="mt-4 space-y-3 rounded-xl border border-gray-200 p-3">
-              <div className="text-sm font-medium text-gray-900">Crear cliente</div>
+            <form onSubmit={handleCreateClient} className="mt-4 space-y-3 rounded-[1rem] border border-slate-800 bg-slate-950/50 p-3">
+              <div className="text-sm font-semibold text-slate-100">Crear cliente</div>
               <input
                 value={clientForm.nombre}
                 onChange={(event) => setClientForm((current) => ({ ...current, nombre: event.target.value }))}
                 placeholder="Nombre y apellido"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900"
+                className={internalInputClassName}
               />
               <input
                 value={clientForm.dni}
                 onChange={(event) => setClientForm((current) => ({ ...current, dni: event.target.value }))}
                 placeholder="DNI"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900"
+                className={internalInputClassName}
               />
               <div className="grid gap-2 sm:grid-cols-2">
                 <input
                   value={clientForm.telefono}
                   onChange={(event) => setClientForm((current) => ({ ...current, telefono: event.target.value }))}
                   placeholder="Teléfono"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900"
+                  className={internalInputClassName}
                 />
                 <input
                   value={clientForm.email}
                   onChange={(event) => setClientForm((current) => ({ ...current, email: event.target.value }))}
                   placeholder="Email"
                   type="email"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900"
+                  className={internalInputClassName}
                 />
               </div>
 
-              {clientError && <p className="text-sm text-red-600">{clientError}</p>}
+              {clientError && <p className="text-sm text-rose-200">{clientError}</p>}
 
-              <button
-                type="submit"
-                disabled={isCreatingClient}
-                className="w-full rounded-lg border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-900 hover:text-white disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400"
-              >
+              <button type="submit" disabled={isCreatingClient} className={`${internalSecondaryButtonClassName} w-full`}>
                 {isCreatingClient ? "Creando..." : "Crear y seleccionar"}
               </button>
             </form>
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-200 bg-white p-4">
+          <form onSubmit={handleSubmit} className={`${internalSurfaceClassName} p-4`}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Carrito</h2>
-                <p className="text-sm text-gray-500">Editá cantidades y revisá el total.</p>
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">Carrito</p>
+                <h2 className="mt-2 text-base font-semibold text-slate-50">Resumen</h2>
+                <p className="text-sm leading-6 text-slate-300">Editá cantidades y revisá el total.</p>
               </div>
-              <span className="text-sm text-gray-500">{cartLines.length} ítems</span>
+              <InternalBadge>{cartLines.length} ítems</InternalBadge>
             </div>
 
             <div className="mt-4 space-y-3">
               {cartLines.map((line) => (
-                <div key={line.productId} className="rounded-xl border border-gray-200 p-3">
+                <div key={line.productId} className="rounded-[1rem] border border-slate-800 bg-slate-950/60 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-gray-900">{line.product.nombre}</div>
-                      <div className="text-xs text-gray-500">{money(line.product.precio)} c/u</div>
+                      <div className="font-medium text-slate-50">{line.product.nombre}</div>
+                      <div className="text-xs text-slate-400">{money(line.product.precio)} c/u</div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeProduct(line.productId)}
-                      className="text-xs font-medium text-gray-500 hover:text-gray-900"
-                    >
+                    <button type="button" onClick={() => removeProduct(line.productId)} className="text-xs font-medium text-slate-400 transition-colors hover:text-slate-100">
                       Quitar
                     </button>
                   </div>
@@ -445,7 +415,7 @@ export default function VentasWorkflow({
                       <button
                         type="button"
                         onClick={() => updateQuantity(line.productId, line.quantity - 1)}
-                        className="h-9 w-9 rounded-lg border border-gray-300 text-lg leading-none text-gray-700 hover:bg-gray-50"
+                        className={`${internalSecondaryButtonClassName} h-9 w-9 px-0 py-0`}
                       >
                         -
                       </button>
@@ -455,23 +425,23 @@ export default function VentasWorkflow({
                         max={line.product.stock}
                         value={line.quantity}
                         onChange={(event) => updateQuantity(line.productId, Number(event.target.value))}
-                        className="w-20 rounded-lg border border-gray-300 px-2 py-2 text-center text-sm outline-none focus:border-gray-900"
+                        className={`${internalInputClassName} w-20 text-center`}
                       />
                       <button
                         type="button"
                         onClick={() => updateQuantity(line.productId, line.quantity + 1)}
-                        className="h-9 w-9 rounded-lg border border-gray-300 text-lg leading-none text-gray-700 hover:bg-gray-50"
+                        className={`${internalSecondaryButtonClassName} h-9 w-9 px-0 py-0`}
                       >
                         +
                       </button>
                     </div>
-                    <div className="text-sm font-medium text-gray-900">{money(line.lineTotal)}</div>
+                    <div className="text-sm font-semibold text-slate-50">{money(line.lineTotal)}</div>
                   </div>
                 </div>
               ))}
 
               {!cartLines.length && (
-                <div className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+                <div className="rounded-[1rem] border border-dashed border-slate-700 bg-slate-950/40 p-4 text-sm text-slate-400">
                   Aún no agregaste productos.
                 </div>
               )}
@@ -479,24 +449,13 @@ export default function VentasWorkflow({
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-sm">
-                <span className="block font-medium text-gray-700">Descuento</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={discount}
-                  onChange={(event) => setDiscount(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
-                />
+                <span className="block font-medium text-slate-200">Descuento</span>
+                <input type="number" min="0" step="0.01" value={discount} onChange={(event) => setDiscount(event.target.value)} className={internalInputClassName} />
               </label>
 
               <label className="space-y-1 text-sm">
-                <span className="block font-medium text-gray-700">Método de pago</span>
-                <select
-                  value={metodoPago}
-                  onChange={(event) => setMetodoPago(event.target.value as MetodoPago)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
-                >
+                <span className="block font-medium text-slate-200">Método de pago</span>
+                <select value={metodoPago} onChange={(event) => setMetodoPago(event.target.value as MetodoPago)} className={internalInputClassName}>
                   <option value="EFECTIVO">Efectivo</option>
                   <option value="TARJETA">Tarjeta</option>
                   <option value="TRANSFERENCIA">Transferencia</option>
@@ -504,19 +463,15 @@ export default function VentasWorkflow({
               </label>
 
               <label className="space-y-1 text-sm sm:col-span-2">
-                <span className="block font-medium text-gray-700">Comprobante</span>
-                <select
-                  value={comprobante}
-                  onChange={(event) => setComprobante(event.target.value as TipoComprobante)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
-                >
+                <span className="block font-medium text-slate-200">Comprobante</span>
+                <select value={comprobante} onChange={(event) => setComprobante(event.target.value as TipoComprobante)} className={internalInputClassName}>
                   <option value="BOLETA">Boleta</option>
                   <option value="FACTURA">Factura</option>
                 </select>
               </label>
             </div>
 
-            <div className="mt-4 space-y-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+            <div className={`${internalSoftSurfaceClassName} mt-4 space-y-2 p-3 text-sm text-slate-300`}>
               <div className="flex items-center justify-between">
                 <span>Subtotal</span>
                 <span>{money(subtotal)}</span>
@@ -525,18 +480,14 @@ export default function VentasWorkflow({
                 <span>Descuento</span>
                 <span>-{money(discountValue)}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-semibold text-gray-900">
+              <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-base font-semibold text-slate-50">
                 <span>Total</span>
                 <span>{money(total)}</span>
               </div>
             </div>
 
-            {saleError && <p className="mt-3 text-sm text-red-600">{saleError}</p>}
-            <button
-              type="submit"
-              disabled={isSaving || !selectedClientId || !cartLines.length}
-              className="mt-4 w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
+            {saleError && <p className="mt-3 text-sm text-rose-200">{saleError}</p>}
+            <button type="submit" disabled={isSaving || !selectedClientId || !cartLines.length} className={`${internalPrimaryButtonClassName} mt-4 w-full`}>
               {isSaving ? "Guardando..." : "Guardar venta"}
             </button>
           </form>

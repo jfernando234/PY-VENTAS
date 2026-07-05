@@ -1,4 +1,11 @@
 import { listarClientes } from "@/lib/sales";
+import {
+  InternalBadge,
+  InternalEmptyState,
+  InternalPageHeader,
+  InternalPageShell,
+  InternalSection,
+} from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -6,42 +13,56 @@ export default async function ClientesPage() {
   const clientes = await listarClientes();
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-        <p className="text-sm text-gray-600 mt-1">Listado básico de clientes para el proceso de ventas.</p>
-      </div>
+    <InternalPageShell>
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <InternalPageHeader
+          eyebrow="Relación comercial"
+          title="Clientes"
+          description="Listado base de clientes para el proceso de ventas y seguimiento interno."
+        />
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-gray-500">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Cliente</th>
-              <th className="px-4 py-3 text-left font-medium">DNI</th>
-              <th className="px-4 py-3 text-left font-medium">Contacto</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {clientes.map((cliente) => (
-              <tr key={cliente.id}>
-                <td className="px-4 py-3 font-medium text-gray-900">{cliente.nombre}</td>
-                <td className="px-4 py-3 text-gray-700">{cliente.dni}</td>
-                <td className="px-4 py-3 text-gray-700">
-                  <div>{cliente.telefono ?? "-"}</div>
-                  <div className="text-xs text-gray-500">{cliente.email ?? ""}</div>
-                </td>
-              </tr>
-            ))}
-            {!clientes.length && (
-              <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={3}>
-                  No hay clientes cargados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <InternalSection
+          eyebrow="Base de clientes"
+          title="Registro activo"
+          description="Clientes disponibles para seleccionar durante la venta."
+          action={<InternalBadge tone="accent">{clientes.length} clientes</InternalBadge>}
+        >
+          <div className="overflow-hidden rounded-b-[1.75rem]">
+            <table className="min-w-full divide-y divide-slate-800 text-sm">
+              <thead className="bg-slate-950/70 text-slate-400">
+                <tr>
+                  <th className="px-5 py-3 text-left font-semibold sm:px-6">Cliente</th>
+                  <th className="px-5 py-3 text-left font-semibold sm:px-6">DNI</th>
+                  <th className="px-5 py-3 text-left font-semibold sm:px-6">Contacto</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 bg-slate-900/70">
+                {clientes.map((cliente) => (
+                  <tr key={cliente.id} className="transition-colors hover:bg-slate-800/70">
+                    <td className="px-5 py-4 font-medium text-slate-50 sm:px-6">{cliente.nombre}</td>
+                    <td className="px-5 py-4 text-slate-300 sm:px-6">{cliente.dni}</td>
+                    <td className="px-5 py-4 text-slate-300 sm:px-6">
+                      <div>{cliente.telefono ?? "-"}</div>
+                      <div className="text-xs text-slate-400">{cliente.email ?? ""}</div>
+                    </td>
+                  </tr>
+                ))}
+
+                {!clientes.length && (
+                  <tr>
+                    <td className="px-5 py-6 sm:px-6" colSpan={3}>
+                      <InternalEmptyState
+                        title="No hay clientes cargados."
+                        description="Los clientes creados desde la venta o por API aparecerán acá."
+                      />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </InternalSection>
       </div>
-    </div>
+    </InternalPageShell>
   );
 }

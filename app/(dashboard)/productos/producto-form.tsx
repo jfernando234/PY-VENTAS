@@ -2,6 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  internalInputClassName,
+  internalPrimaryButtonClassName,
+  internalSurfaceClassName,
+} from "@/components/internal/internal-ui";
 
 type FormState = {
   nombre: string;
@@ -97,15 +102,18 @@ export function ProductoForm() {
   }
 
   return (
-    <section id="nuevo-producto" className="rounded-2xl border border-gray-200 bg-white p-5 lg:p-6">
-      <div className="mb-5">
-        <h2 className="text-lg font-semibold text-gray-900">Nuevo producto</h2>
-        <p className="mt-1 text-sm text-gray-600">Cargá el producto para dejarlo listo para ventas.</p>
+    <section id="nuevo-producto" className={`${internalSurfaceClassName} p-5 lg:p-6`}>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">Inventario</p>
+          <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-50">Nuevo producto</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-300">Cargá el producto para dejarlo listo para ventas.</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
-          <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="nombre" className="block text-sm font-medium text-slate-200">
             Nombre
           </label>
           <input
@@ -115,12 +123,12 @@ export function ProductoForm() {
             value={form.nombre}
             onChange={(event) => updateField("nombre", event.target.value)}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="codigo" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="codigo" className="block text-sm font-medium text-slate-200">
             Código
           </label>
           <input
@@ -130,12 +138,12 @@ export function ProductoForm() {
             value={form.codigo}
             onChange={(event) => updateField("codigo", event.target.value)}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="categoria" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="categoria" className="block text-sm font-medium text-slate-200">
             Categoría
           </label>
           <input
@@ -145,12 +153,12 @@ export function ProductoForm() {
             value={form.categoria}
             onChange={(event) => updateField("categoria", event.target.value)}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="precio" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="precio" className="block text-sm font-medium text-slate-200">
             Precio
           </label>
           <input
@@ -162,12 +170,12 @@ export function ProductoForm() {
             value={form.precio}
             onChange={(event) => updateField("precio", event.target.value)}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="stock" className="block text-sm font-medium text-slate-200">
             Stock inicial
           </label>
           <input
@@ -179,12 +187,12 @@ export function ProductoForm() {
             value={form.stock}
             onChange={(event) => updateField("stock", event.target.value)}
             disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="stockMinimo" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="stockMinimo" className="block text-sm font-medium text-slate-200">
             Stock mínimo
           </label>
           <input
@@ -196,28 +204,24 @@ export function ProductoForm() {
             onChange={(event) => updateField("stockMinimo", event.target.value)}
             disabled={isLoading}
             placeholder="5"
-            className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className={internalInputClassName}
           />
         </div>
 
         <div className="md:col-span-2 flex flex-col gap-3">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-3 text-sm text-rose-200">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-sm text-emerald-700">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-100">
               {success}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <button type="submit" disabled={isLoading} className={internalPrimaryButtonClassName}>
             {isLoading ? "Guardando..." : "Guardar producto"}
           </button>
         </div>

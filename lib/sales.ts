@@ -8,6 +8,7 @@ import type {
   ProductoResumen,
   TipoComprobante,
   VentaVista,
+  VentaResumen,
 } from "@/lib/sales-types";
 
 export class SalesError extends Error {
@@ -38,8 +39,46 @@ export class ConflictError extends SalesError {
   }
 }
 
+export type ResumenVentasHoy = {
+  fecha: string;
+  ventasCount: number;
+  totalNeto: number;
+  promedioTicket: number;
+  itemsVendidos: number;
+  descuentos: number;
+  ventasRecientes: Array<{
+    id: number;
+    total: number;
+    descuento: number;
+    metodoPago: MetodoPago;
+    createdAt: string;
+    cliente: ClienteResumen;
+    itemsCount: number;
+  }>;
+};
+
+export type ProductoMasVendidoHoy = {
+  id: number;
+  nombre: string;
+  codigo: string;
+  categoria: string;
+  unidadesVendidas: number;
+  ingresos: number;
+  items: number;
+};
+
 function roundMoney(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function getDayRange(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  return { start, end };
 }
 
 function mapProducto(producto: {
@@ -167,6 +206,20 @@ export async function listarProductos(query = "") {
   return productos.map(mapProducto);
 }
 
+export async function listarProductosBajoStock(limit = 5) {
+  const productos = await listarProductos();
+
+  return productos
+    .filter((producto) => producto.stock <= producto.stockMinimo)
+    .sort((a, b) => {
+      const faltanteA = a.stockMinimo - a.stock;
+      const faltanteB = b.stockMinimo - b.stock;
+
+      return faltanteB - faltanteA || a.stock - b.stock || a.nombre.localeCompare(b.nombre);
+    })
+    .slice(0, limit);
+}
+
 export async function crearProducto(data: {
   nombre: unknown;
   codigo: unknown;
@@ -268,6 +321,158 @@ export async function obtenerVenta(id: number): Promise<VentaVista | null> {
       producto: mapProducto(detalle.producto),
     })),
   };
+}
+
+export async function listarVentas(limit = 20): Promise<VentaResumen[]> {
+  const ventas = await prisma.venta.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: {
+      cliente: true,
+      usuario: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+      _count: {
+        select: {
+          detalles: true,
+        },
+      },
+    },
+  });
+
+  return ventas.map((venta) => ({
+    id: venta.id,
+    total: venta.total,
+    descuento: venta.descuento,
+    subtotal: roundMoney(venta.total + venta.descuento),
+    metodoPago: venta.metodoPago,
+    comprobante: venta.comprobante,
+    createdAt: venta.createdAt.toISOString(),
+    cliente: mapCliente(venta.cliente),
+    usuario: venta.usuario,
+    itemsCount: venta._count.detalles,
+  }));
+}
+
+export async function obtenerResumenVentasHoy(fecha = new Date()): Promise<ResumenVentasHoy> {
+  const { start, end } = getDayRange(fecha);
+
+  const ventas = await prisma.venta.findMany({
+    where: {
+      createdAt: {
+        gte: start,
+        lt: end,
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      total: true,
+      descuento: true,
+      metodoPago: true,
+      createdAt: true,
+      cliente: {
+        select: {
+          id: true,
+          nombre: true,
+          dni: true,
+          telefono: true,
+          email: true,
+        },
+      },
+      detalles: {
+        select: {
+          cantidad: true,
+        },
+      },
+    },
+  });
+
+  const ventasCount = ventas.length;
+  const totalNeto = roundMoney(ventas.reduce((sum, venta) => sum + venta.total, 0));
+  const descuentos = roundMoney(ventas.reduce((sum, venta) => sum + venta.descuento, 0));
+  const itemsVendidos = ventas.reduce(
+    (sum, venta) => sum + venta.detalles.reduce((detailSum, detalle) => detailSum + detalle.cantidad, 0),
+    0
+  );
+
+  return {
+    fecha: start.toISOString(),
+    ventasCount,
+    totalNeto,
+    promedioTicket: ventasCount ? roundMoney(totalNeto / ventasCount) : 0,
+    itemsVendidos,
+    descuentos,
+    ventasRecientes: ventas.slice(0, 5).map((venta) => ({
+      id: venta.id,
+      total: venta.total,
+      descuento: venta.descuento,
+      metodoPago: venta.metodoPago,
+      createdAt: venta.createdAt.toISOString(),
+      cliente: mapCliente(venta.cliente),
+      itemsCount: venta.detalles.reduce((sum, detalle) => sum + detalle.cantidad, 0),
+    })),
+  };
+}
+
+export async function obtenerProductosMasVendidosHoy(
+  fecha = new Date(),
+  limit = 5
+): Promise<ProductoMasVendidoHoy[]> {
+  const { start, end } = getDayRange(fecha);
+
+  const detalles = await prisma.detalleVenta.findMany({
+    where: {
+      venta: {
+        createdAt: {
+          gte: start,
+          lt: end,
+        },
+      },
+    },
+    select: {
+      cantidad: true,
+      subtotal: true,
+      producto: {
+        select: {
+          id: true,
+          nombre: true,
+          codigo: true,
+          categoria: true,
+        },
+      },
+    },
+  });
+
+  const agrupados = new Map<number, ProductoMasVendidoHoy>();
+
+  for (const detalle of detalles) {
+    const actual = agrupados.get(detalle.producto.id);
+
+    if (actual) {
+      actual.unidadesVendidas += detalle.cantidad;
+      actual.ingresos = roundMoney(actual.ingresos + detalle.subtotal);
+      actual.items += 1;
+      continue;
+    }
+
+    agrupados.set(detalle.producto.id, {
+      id: detalle.producto.id,
+      nombre: detalle.producto.nombre,
+      codigo: detalle.producto.codigo,
+      categoria: detalle.producto.categoria,
+      unidadesVendidas: detalle.cantidad,
+      ingresos: roundMoney(detalle.subtotal),
+      items: 1,
+    });
+  }
+
+  return Array.from(agrupados.values())
+    .sort((a, b) => b.unidadesVendidas - a.unidadesVendidas || b.ingresos - a.ingresos || a.nombre.localeCompare(b.nombre))
+    .slice(0, limit);
 }
 
 export async function crearCliente(data: {

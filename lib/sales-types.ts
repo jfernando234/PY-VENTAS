@@ -56,3 +56,19 @@ export interface VentaVista {
   };
   detalles: DetalleVentaVista[];
 }
+
+export interface VentaResumen {
+  id: number;
+  total: number;
+  descuento: number;
+  subtotal: number;
+  metodoPago: MetodoPago;
+  comprobante: TipoComprobante;
+  createdAt: string;
+  cliente: ClienteResumen;
+  usuario: {
+    id: number;
+    nombre: string;
+  };
+  itemsCount: number;
+}
