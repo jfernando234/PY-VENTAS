@@ -63,7 +63,7 @@ export default async function DashboardPage() {
 
   return (
     <InternalPageShell>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex w-full flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900/95">
           <div className="grid gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.95fr)] lg:px-6 lg:py-7">
             <div className="space-y-5">
