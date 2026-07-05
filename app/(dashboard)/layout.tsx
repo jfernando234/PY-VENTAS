@@ -34,26 +34,26 @@ export default async function DashboardLayout({
             Dashboard
           </Link>
           <Link
-            href="/dashboard/ventas"
+            href="/ventas"
             className="block px-3 py-2 rounded text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
           >
             Ventas
           </Link>
           <Link
-            href="/dashboard/productos"
+            href="/productos"
             className="block px-3 py-2 rounded text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
           >
             Productos
           </Link>
           <Link
-            href="/dashboard/clientes"
+            href="/clientes"
             className="block px-3 py-2 rounded text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
           >
             Clientes
           </Link>
           {session.user.rol === "ADMINISTRADOR" && (
             <Link
-              href="/dashboard/usuarios"
+              href="/usuarios"
               className="block px-3 py-2 rounded text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
             >
               Usuarios

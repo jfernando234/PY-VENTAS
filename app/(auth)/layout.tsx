@@ -19,7 +19,7 @@ export default function AuthLayout({
 
         <div>
           <blockquote className="text-gray-300 text-2xl font-light leading-relaxed mb-6">
-            "Gestioná tus ventas, clientes y stock desde un solo lugar."
+            &quot;Gestioná tus ventas, clientes y stock desde un solo lugar.&quot;
           </blockquote>
           <div className="flex gap-6 text-sm text-gray-500">
             <span>Ventas</span>
